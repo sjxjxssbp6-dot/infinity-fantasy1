@@ -1,0 +1,6 @@
+name: ${project.name}
+main: ${project.mainclass}
+version: ${version}
+author: ${project.author}
+depend: [StedaApi]
+commands:

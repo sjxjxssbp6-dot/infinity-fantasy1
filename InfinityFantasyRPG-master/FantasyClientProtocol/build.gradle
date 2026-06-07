@@ -1,0 +1,42 @@
+repositories {
+    google()
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url 'https://repo.c7x.ru/repository/maven-public/'
+        credentials {
+            username System.getenv("REPO_C7X_USERNAME")
+            password System.getenv("REPO_C7X_PASSWORD")
+        }
+    }
+}
+
+group 'cupcake.nikky.imperium.tower.client.protocol'
+version '1.0-SNAPSHOT'
+
+dependencies {
+    compileOnly 'org.jetbrains:annotations:23.0.0'
+
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    implementation group: 'com.google.code.gson', name: 'gson', version: '2.1'
+    implementation group: 'dev.xdark', name: 'feder', version: '1.2'
+    implementation group: 'io.netty', name: 'netty-buffer', version: '4.1.85.Final'
+    implementation 'ru.cristalix:wada:2.13.0'
+    implementation 'ru.cristalix:enginex:3.7.3'
+    implementation 'net.diamondden:diamondpaper:1.0.12'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.fork = true
+    options.forkOptions.executable = 'C:/Users/Nicky/.jdks/corretto-1.8.0_322/bin/javac.exe'
+    sourceCompatibility = targetCompatibility = 1.8
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}

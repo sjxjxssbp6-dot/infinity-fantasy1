@@ -1,0 +1,5 @@
+name: DatabaseModule
+main: cupcake.nikky.imperium.tower.database.BootstrapDatabase
+version: ${version}
+author: NeitExx
+description: Database module

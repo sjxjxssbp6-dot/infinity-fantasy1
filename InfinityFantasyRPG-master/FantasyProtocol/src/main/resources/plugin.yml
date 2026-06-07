@@ -1,0 +1,5 @@
+name: FantasyProtocol
+main: cupcake.nikky.imperium.tower.protocol.BootstrapImperiumProtocol
+version: ${version}
+author: NeitExx
+depend: [DatabaseModule, CoreAPI, StedaApi]

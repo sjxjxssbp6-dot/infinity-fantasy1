@@ -1,0 +1,72 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    google()
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url 'https://repo.c7x.ru/repository/maven-public/'
+        credentials {
+            username System.getenv("REPO_C7X_USERNAME")
+            password System.getenv("REPO_C7X_PASSWORD")
+        }
+    }
+}
+
+group 'cupcake.nikky.imperium.tower.protocol'
+version '1.0-SNAPSHOT'
+
+task uploadTest() {
+    doLast {
+        ssh.run {
+            session(remotes.test) {
+                put from: tasks.jar.getArchiveFile().get().asFile.path,
+                        into: "/home/neitexx/Inf-imp/game-servers/plugins"
+                put from: tasks.jar.getArchiveFile().get().asFile.path,
+                        into: "/home/neitexx/Inf-imp/service-plugins"
+            }
+        }
+    }
+}
+
+task uploadProduction() {
+    doLast {
+        ssh.run {
+            session(remotes.production) {
+                put from: tasks.jar.getArchiveFile().get().asFile.path,
+                        into: "/home/neitexx/game-plugins"
+                put from: tasks.jar.getArchiveFile().get().asFile.path,
+                        into: "/home/neitexx/service-plugins"
+            }
+        }
+
+        ssh.run {
+            session(remotes.production2) {
+                put from: tasks.jar.getArchiveFile().get().asFile.path,
+                        into: "/home/neitexx/game-plugins"
+            }
+        }
+    }
+}
+
+dependencies {
+    compileOnly fileTree(dir: "libs", includes: ['*.jar'])
+    compileOnly 'org.jetbrains:annotations:23.0.0'
+
+    implementation("org.mongodb:mongodb-driver-sync:4.11.0")
+    implementation("com.github.NeitExx.bukkit.configuration:ConfigurationNikkyAPI:3.2-SNAPSHOT")
+    implementation("me.anfanik.steda:stedaapi:1.19.7.1")
+
+    api ("gg.cristalix:diamondpaper:1.1.0")
+    api ("ru.cristalix.core:bukkit-api:1.4.14")
+
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+}
+
+afterEvaluate {
+    tasks.uploadTest.dependsOn(tasks.build)
+    tasks.uploadProduction.dependsOn(tasks.build)
+}

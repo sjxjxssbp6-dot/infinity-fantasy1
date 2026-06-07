@@ -1,0 +1,84 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        mavenLocal()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+        maven { url = uri("https://repo.destroystokyo.com/repository/maven-public/") }
+    }
+
+    dependencies {
+        classpath('org.hidetake:gradle-ssh-plugin:2.10.1')
+    }
+}
+
+group 'cupcake.nikky.imperium.tower'
+version '1.0-SNAPSHOT'
+
+allprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'org.hidetake.ssh'
+    apply plugin: 'java'
+
+    remotes {
+        test {
+            host = System.getenv("CRISTALIX_HOST")
+            user = System.getenv("REPO_C7X_USERNAME").toLowerCase()
+            knownHosts = allowAnyHosts
+            identity = file(System.getenv("CRISTALIX_PRIVATE_KEY_PATH"))
+            passphrase = System.getenv("CRISTALIX_PRIVATE_KEY_PASSPHRASE")
+        }
+
+        storageServer {
+            host = 'storage.c7x.ru'
+            user = System.getenv("REPO_C7X_USERNAME").toLowerCase()
+            knownHosts = allowAnyHosts
+            identity = file(System.getenv("CRISTALIX_PRIVATE_KEY_PATH"))
+            passphrase = System.getenv("CRISTALIX_PRIVATE_KEY_PASSPHRASE")
+        }
+
+        production {
+            host = 'new2b2t.dedi.c7x.dev'
+            user = System.getenv("REPO_C7X_USERNAME").toLowerCase()
+            knownHosts = allowAnyHosts
+            identity = file(System.getenv("CRISTALIX_PRIVATE_KEY_PATH"))
+            passphrase = System.getenv("CRISTALIX_PRIVATE_KEY_PASSPHRASE")
+        }
+
+        production2 {
+            host = 'ivy.dedi.c7x.dev'
+            user = System.getenv("REPO_C7X_USERNAME").toLowerCase()
+            knownHosts = allowAnyHosts
+            identity = file(System.getenv("CRISTALIX_PRIVATE_KEY_PATH"))
+            passphrase = System.getenv("CRISTALIX_PRIVATE_KEY_PASSPHRASE")
+        }
+    }
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
+    processResources {
+        outputs.upToDateWhen { false }
+        filesMatching('**/plugin.yml') {
+            filter {
+                it.replace('${version}', project.version)
+            }
+        }
+    }
+
+    tasks.withType(JavaCompile).tap {
+        configureEach {
+            options.encoding = "UTF-8"
+            sourceCompatibility = targetCompatibility = 21
+        }
+    }
+
+    jar {
+        getDestinationDirectory().set(file(System.getenv("OUTPUT_DIRECTORY") == null ? "build" : System.getenv("OUTPUT_DIRECTORY")))
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+}

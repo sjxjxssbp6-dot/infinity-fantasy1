@@ -1,0 +1,108 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        google()
+        maven {
+            url 'https://repo.c7x.ru/repository/maven-public/'
+            credentials {
+                username System.getenv("REPO_C7X_USERNAME")
+                password System.getenv("REPO_C7X_PASSWORD")
+            }
+        }
+    }
+}
+
+plugins {
+    id 'java'
+}
+
+group 'cupcake.nikky.imperium.tower'
+version '1.0-SNAPSHOT'
+
+repositories {
+    google()
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url 'https://repo.c7x.ru/repository/maven-public/'
+        credentials {
+            username System.getenv("REPO_C7X_USERNAME")
+            password System.getenv("REPO_C7X_PASSWORD")
+        }
+    }
+}
+
+task uploadTest() {
+    doLast {
+        ssh.run {
+            session(remotes.test) {
+                put from: tasks.jar.getArchiveFile().get().asFile.path,
+                        into: "/home/neitexx/Inf-imp/game-servers/plugins"
+            }
+        }
+    }
+}
+
+task uploadProduction() {
+    doLast {
+        ssh.run {
+            session(remotes.production) {
+                put from: tasks.jar.getArchiveFile().get().asFile.path,
+                        into: "/home/neitexx/game-plugins"
+            }
+        }
+
+        ssh.run {
+            session(remotes.production2) {
+                put from: tasks.jar.getArchiveFile().get().asFile.path,
+                        into: "/home/neitexx/game-plugins"
+            }
+        }
+    }
+}
+
+configurations {
+    ray
+}
+
+dependencies {
+    implementation(project(":FantasyProtocol"))
+
+    ray 'gg.cristalix.visual-driver:api:3.8.15'
+    ray 'ru.cristalix:wada:3.4.2'
+    ray 'dev.xdark:feder:live-SNAPSHOT'
+
+    configurations.api.extendsFrom(configurations.ray)
+}
+
+processResources {
+    outputs.upToDateWhen { false }
+    filesMatching('**/plugin.yml') {
+        filter {
+            it.replace('${version}', project.version)
+                    .replace('${namings}', project.name)
+        }
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << "-Xlint:deprecation"
+}
+
+jar {
+    from {
+        configurations.ray.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    getDestinationDirectory().set(file(System.getenv("OUTPUT_DIRECTORY") == null ? "build" : System.getenv("OUTPUT_DIRECTORY")))
+}
+
+afterEvaluate {
+    tasks.uploadTest.dependsOn(tasks.build)
+    tasks.uploadProduction.dependsOn(tasks.build)
+}

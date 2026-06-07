@@ -1,0 +1,57 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+group 'com.github.NeitExx.bukkit.configuration'
+version '3.2-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://repo.destroystokyo.com/repository/maven-public//"
+    }
+}
+
+dependencies {
+    compileOnly 'org.jetbrains:annotations:23.0.0'
+
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.24'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+    compileOnly('com.destroystokyo.paper:paper-api:1.12.2-R0.1-SNAPSHOT')
+}
+
+processResources {
+    outputs.upToDateWhen { false }
+    filesMatching('**/plugin.yml') {
+        filter {
+            it.replace('${version}', project.version)
+                    .replace('${namings}', project.name)
+        }
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId project.group
+            artifactId project.name
+            version project.version
+            artifact jar
+        }
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << "-Xlint:deprecation"
+}

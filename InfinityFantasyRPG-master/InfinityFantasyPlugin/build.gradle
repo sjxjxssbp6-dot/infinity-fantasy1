@@ -1,0 +1,89 @@
+group 'cupcake.nikky.imperium.tower'
+version '0.5-SNAPSHOT'
+
+task uploadTest() {
+    doLast {
+        ssh.run {
+            session(remotes.test) {
+                put from: tasks.jar.getArchiveFile().get().asFile.path,
+                        into: "/home/neitexx/Inf-imp/game-servers/plugins"
+            }
+        }
+    }
+}
+
+task uploadProduction() {
+    doLast {
+        ssh.run {
+            session(remotes.production) {
+                put from: tasks.jar.getArchiveFile().get().asFile.path,
+                        into: "/home/neitexx/game-plugins"
+            }
+        }
+
+        ssh.run {
+            session(remotes.production2) {
+                put from: tasks.jar.getArchiveFile().get().asFile.path,
+                        into: "/home/neitexx/game-plugins"
+            }
+        }
+    }
+}
+
+repositories {
+    //maven { url "http://maven.elmakers.com/repository/" }
+    google()
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url 'https://repo.c7x.ru/repository/maven-public/'
+        credentials {
+            username System.getenv("REPO_C7X_USERNAME")
+            password System.getenv("REPO_C7X_PASSWORD")
+        }
+    }
+}
+
+configurations {
+    ray
+}
+
+dependencies {
+    compileOnly 'org.jetbrains:annotations:23.0.0'
+
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    implementation("org.mongodb:mongodb-driver-sync:4.11.0")
+    implementation(project(":FantasyProtocol"))
+    implementation(project(":VisualModule"))
+    implementation("me.anfanik.steda:stedaapi:1.19.7.1")
+    ray(project(":FantasyClientProtocol")) {
+        exclude group: 'com.google.code.gson', module: 'gson'
+        exclude group: 'dev.xdark', module: 'feder'
+        exclude group: 'io.netty', module: 'netty-buffer'
+        exclude group: 'ru.cristalix', module: 'wada'
+        exclude group: 'ru.cristalix', module: 'enginex'
+        exclude group: 'net.diamondden', module: 'diamondpaper'
+    }
+
+    implementation("com.github.NeitExx.bukkit:CommandNikkyAPI-B:1.0-SNAPSHOT") {
+        exclude group: "me.anfanik.steda", module: "stedaapi"
+    }
+    implementation("com.github.NeitExx.bukkit.configuration:ConfigurationNikkyAPI:3.2-SNAPSHOT")
+
+    ray "com.github.neitexx:ReflectionNikkyAPI:1.0-SNAPSHOT"
+
+    configurations.implementation.extendsFrom(configurations.ray)
+}
+
+jar {
+    from {
+        configurations.ray.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+afterEvaluate {
+    tasks.uploadTest.dependsOn(tasks.build)
+    tasks.uploadProduction.dependsOn(tasks.build)
+}

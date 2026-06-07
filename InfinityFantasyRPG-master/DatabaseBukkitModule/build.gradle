@@ -1,0 +1,69 @@
+group 'cupcake.nikky.imperium.tower.database'
+version '1.0-SNAPSHOT'
+
+task uploadTest() {
+    doLast {
+        ssh.run {
+            session(remotes.test) {
+                put from: tasks.jar.getArchiveFile().get().asFile.path,
+                        into: "/home/neitexx/Inf-imp/game-servers/plugins"
+                put from: tasks.jar.getArchiveFile().get().asFile.path,
+                        into: "/home/neitexx/Inf-imp/service-plugins"
+            }
+        }
+    }
+}
+
+task uploadProduction() {
+    doLast {
+        ssh.run {
+            session(remotes.production) {
+                put from: tasks.jar.getArchiveFile().get().asFile.path,
+                        into: "/home/neitexx/game-plugins"
+                put from: tasks.jar.getArchiveFile().get().asFile.path,
+                        into: "/home/neitexx/service-plugins"
+            }
+        }
+
+        ssh.run {
+            session(remotes.production2) {
+                put from: tasks.jar.getArchiveFile().get().asFile.path,
+                        into: "/home/neitexx/game-plugins"
+            }
+        }
+    }
+}
+
+repositories {
+    google()
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url 'https://repo.c7x.ru/repository/maven-public/'
+        credentials {
+            username System.getenv("REPO_C7X_USERNAME")
+            password System.getenv("REPO_C7X_PASSWORD")
+        }
+    }
+}
+
+configurations {
+    ray
+}
+
+dependencies {
+    ray("org.mongodb:mongodb-driver-sync:4.11.0")
+    implementation("net.diamondden:diamondpaper:1.0.12")
+    configurations.implementation.extendsFrom(configurations.ray)
+}
+
+jar {
+    from {
+        configurations.ray.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+afterEvaluate {
+    tasks.uploadTest.dependsOn(tasks.build)
+    tasks.uploadProduction.dependsOn(tasks.build)
+}

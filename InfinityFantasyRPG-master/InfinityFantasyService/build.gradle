@@ -1,0 +1,56 @@
+group 'cupcake.nikky.imperium.tower'
+version '1.0-SNAPSHOT'
+
+task uploadTest() {
+    doLast {
+        ssh.run {
+            session(remotes.test) {
+                put from: tasks.jar.getArchiveFile().get().asFile.path,
+                        into: "/home/neitexx/Inf-imp/service-plugins"
+            }
+        }
+    }
+}
+
+task uploadProduction() {
+    doLast {
+        ssh.run {
+            session(remotes.production) {
+                put from: tasks.jar.getArchiveFile().get().asFile.path,
+                        into: "/home/neitexx/service-plugins"
+            }
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven {
+        url 'https://repo.c7x.ru/repository/maven-public/'
+        credentials {
+            username System.getenv("REPO_C7X_USERNAME")
+            password System.getenv("REPO_C7X_PASSWORD")
+        }
+    }
+}
+
+dependencies {
+    compileOnly 'org.jetbrains:annotations:23.0.0'
+
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    implementation("me.anfanik.steda:stedaapi:1.19.7.1")
+    implementation("org.mongodb:mongodb-driver-sync:4.11.0")
+    implementation("com.github.NeitExx.bukkit:CommandNikkyAPI-B:1.0-SNAPSHOT") {
+        exclude group: "me.anfanik.steda", module: "stedaapi"
+    }
+    implementation("com.github.NeitExx.bukkit.configuration:ConfigurationNikkyAPI:3.2-SNAPSHOT")
+    implementation(project(":FantasyProtocol"))
+}
+
+afterEvaluate {
+    tasks.uploadTest.dependsOn(tasks.build)
+    tasks.uploadProduction.dependsOn(tasks.build)
+}

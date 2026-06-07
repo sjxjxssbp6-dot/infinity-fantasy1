@@ -1,0 +1,26 @@
+pluginManagement {
+    repositories {
+        mavenLocal()
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+        maven {
+            url 'https://repo.c7x.ru/repository/maven-public/'
+            credentials {
+                username System.getenv("REPO_C7X_USERNAME")
+                password System.getenv("REPO_C7X_PASSWORD")
+            }
+        }
+    }
+}
+
+rootProject.name = 'InfinityFantasyRPG'
+include 'FantasyClientProtocol'
+include 'DatabaseBukkitModule'
+include 'InfinityFantasyPlugin'
+include 'InfinityFantasyMod'
+include 'FantasyProtocol'
+include 'InfinityFantasyService'
+include 'VisualModule'
+include 'InfinityFantasyTest'
+

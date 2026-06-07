@@ -1,0 +1,8 @@
+name: FantasyService
+main: cupcake.nikky.imperium.service.BootstrapService
+version: ${version}
+author: NeitExx
+depend: [DatabaseModule, CommandNikkyAPI-B, FantasyProtocol, StedaApi, ConfigurationNikkyAPI]
+commands:
+  fantasy:
+  f:

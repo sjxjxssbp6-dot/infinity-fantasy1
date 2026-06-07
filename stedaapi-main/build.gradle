@@ -1,0 +1,54 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+group 'me.anfanik.steda'
+version '1.19.7.1'
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://repository.anfanik.me/public/'
+    }
+    mavenLocal()
+}
+
+dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.18'
+    annotationProcessor 'org.projectlombok:lombok:1.18.18'
+
+    compileOnly 'me.anfanik:sharkly:1.0'
+
+    compileOnly 'org.jetbrains:annotations:23.0.0'
+
+    compileOnly files(
+            '.library/spigot-1.12-R0.1-SNAPSHOT.jar',
+            '.library/spigot-1.8.8-R0.1-SNAPSHOT.jar',
+            '.library/spigot-1.13-R0.1-SNAPSHOT.jar',
+            '.library/spigot-1.13.1-R0.1-SNAPSHOT.jar',
+            '.library/spigot-1.16.1-R0.1-SNAPSHOT.jar',
+            '.library/spigot-1.16.2-R0.1-SNAPSHOT.jar',
+            '.library/spigot-1.16.4-R0.1-SNAPSHOT.jar'
+    )
+}
+
+tasks.with {
+    withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+        options.compilerArgs << '-Xlint:none'
+    }
+    processResources.filter { it.replace('\$version', version as String) }
+    jar.from configurations.runtimeClasspath.collect(project.&zipTree)
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId project.group
+            artifactId project.name
+            version project.version
+            artifact jar
+        }
+    }
+}
